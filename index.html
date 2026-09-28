@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><title>gostones 棋谱复盘台</title>
+<style>
+body{font-family:system-ui,sans-serif;margin:0;background:#efe6d2;color:#3c3121}
+main{max-width:760px;margin:0 auto;padding:16px}
+.panel{background:#fbf5e6;border:1px solid #d8c69c;border-radius:12px;padding:12px 14px}
+#board{display:grid;gap:0;background:#dfc589;border:2px solid #a9853f;border-radius:8px;
+ width:min(78vw,520px);margin:0 auto}
+.cross{position:relative;aspect-ratio:1/1;border-right:1px solid #a9853f;border-bottom:1px solid #a9853f;cursor:pointer}
+.cross::after{content:"";position:absolute;left:50%;top:50%;width:5px;height:5px;margin:-2.5px 0 0 -2.5px;
+ border-radius:50%;background:#6d5423}
+.stone{position:absolute;left:50%;top:50%;width:74%;height:74%;margin:-37% 0 0 -37%;border-radius:50%}
+.stone.black{background:radial-gradient(circle at 35% 30%,#6a6a6a,#101010)}
+.stone.white{background:radial-gradient(circle at 35% 30%,#ffffff,#c9c2b2);border:1px solid #b3a68c}
+.stone.newest{box-shadow:0 0 0 3px #c1542c}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px}
+.read{background:#f3ead4;border:1px solid #ddcba0;border-radius:8px;padding:4px 9px;font-size:13px}
+.read b{color:#8a5a12}
+.read.bad{background:#f7dcd6;border-color:#d99a8b;color:#8c2f18}
+button{font:inherit;padding:5px 12px;border:1px solid #b99a5c;border-radius:8px;background:#f6ecd2;cursor:pointer}
+input[type=range]{width:min(70vw,420px)}
+#log{font-size:13px;color:#6b5a3a;margin-top:8px;min-height:20px}
+</style></head>
+<body>
+<main>
+  <h1 style="font-size:17px;margin:4px 0 12px">棋谱复盘台</h1>
+  <div class="panel">
+    <div id="board"></div>
+    <div class="bar">
+      <span>手数条</span><input id="at" type="range" min="0" max="0" value="0">
+      <button id="doPass">虚手</button>
+      <button id="doReset">重来</button>
+    </div>
+    <div class="bar" id="reads"></div>
+    <div id="log">点交叉点落子，拖手数条回看，点虚手让对手走。</div>
+  </div>
+</main>
+<div id="scene" hidden>{
+  "state": {
+    "size": 7,
+    "board": [
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    ],
+    "toMove": 1,
+    "captures": [
+      0,
+      0
+    ],
+    "koPoint": [
+      0,
+      0
+    ],
+    "passStreak": 0,
+    "finished": false,
+    "moves": [],
+    "placed": [
+      0,
+      0
+    ]
+  },
+  "events": [
+    {
+      "kind": "play",
+      "color": 1,
+      "point": "F2"
+    },
+    {
+      "kind": "play",
+      "color": 2,
+      "point": "G2"
+    },
+    {
+      "kind": "play",
+      "color": 1,
+      "point": "F4"
+    },
+    {
+      "kind": "play",
+      "color": 2,
+      "point": "G4"
+    },
+    {
+      "kind": "play",
+      "color": 1,
+      "point": "E3"
+    },
+    {
+      "kind": "play",
+      "color": 2,
+      "point": "F3"
+    },
+    {
+      "kind": "play",
+      "color": 1,
+      "point": "B1"
+    },
+    {
+      "kind": "play",
+      "color": 2,
+      "point": "A1"
+    },
+    {
+      "kind": "play",
+      "color": 1,
+      "point": "A7"
+    },
+    {
+      "kind": "play",
+      "color": 2,
+      "point": "A6"
+    },
+    {
+      "kind": "play",
+      "color": 1,
+      "point": "A2"
+    },
+    {
+      "kind": "play",
+      "color": 2,
+      "point": "B7"
+    },
+    {
+      "kind": "play",
+      "color": 1,
+      "point": "G3"
+    },
+    {
+      "kind": "pass",
+      "color": 2
+    },
+    {
+      "kind": "pass",
+      "color": 1
+    }
+  ]
+}</div>
+<script type="module">
+import { render } from "./app.js";
+
+const scene = JSON.parse(document.getElementById("scene").textContent);
+const start = scene.state;
+const size = start.size;
+const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const board = document.getElementById("board");
+const reads = document.getElementById("reads");
+const log = document.getElementById("log");
+const slider = document.getElementById("at");
+let kifu = (scene.events || []).slice();
+let shown = kifu.length;
+
+function chip(text, bad) {
+  const span = document.createElement("span");
+  span.className = bad ? "read bad" : "read";
+  span.textContent = text;
+  return span;
+}
+
+function draw() {
+  const view = render({ state: start, events: kifu.slice(0, shown) });
+  board.textContent = "";
+  board.style.gridTemplateColumns = "repeat(" + size + ", 1fr)";
+  for (let row = 0; row < size; row += 1) {
+    for (let col = 0; col < size; col += 1) {
+      const cell = document.createElement("div");
+      cell.className = "cross";
+      const value = view.board[row][col];
+      if (value !== 0) {
+        const stone = document.createElement("span");
+        stone.className = value === 1 ? "stone black" : "stone white";
+        if (shown === view.move_count && view.moves.length > 0) {
+          const last = view.moves[view.moves.length - 1];
+          if (last[1] === row + 1 && last[2] === col + 1) { stone.className += " newest"; }
+        }
+        cell.appendChild(stone);
+      }
+      cell.addEventListener("click", function () {
+        kifu = kifu.slice(0, shown);
+        kifu.push({ kind: "play", color: view.toMove, point: letters[col] + String(row + 1) });
+        shown = kifu.length;
+        draw();
+      });
+      board.appendChild(cell);
+    }
+  }
+  reads.textContent = "";
+  reads.appendChild(chip("轮次 " + (view.toMove === 1 ? "黑" : "白")));
+  reads.appendChild(chip("手数 " + view.move_count));
+  reads.appendChild(chip("提子 黑 " + view.captures[0] + " 白 " + view.captures[1]));
+  reads.appendChild(chip("禁着点 " + view.koPoint[0] + "-" + view.koPoint[1]));
+  reads.appendChild(chip("目数 黑 " + view.area[0] + " 白 " + view.area[1] + " 中立 " + view.area[2]));
+  reads.appendChild(chip("胜方 " + (view.winner === 1 ? "黑" : view.winner === 2 ? "白" : "平")));
+  reads.appendChild(chip("终局 " + (view.finished ? "是" : "否")));
+  reads.appendChild(chip("无气块 " + view.dead_blocks, view.dead_blocks !== 0));
+  reads.appendChild(chip("账目成立 " + (view.ledger ? "是" : "否"), !view.ledger));
+  reads.appendChild(chip("面积和等于格数 " + (view.sum_ok ? "是" : "否"), !view.sum_ok));
+  slider.max = String(kifu.length);
+  slider.value = String(shown);
+  if (view.failed_events > 0) {
+    const last = view.failed_marks[view.failed_marks.length - 1];
+    log.textContent = "被拒 " + last[0] + "：" + last[1] + "（累计 " + view.failed_events + " 手被拒）";
+  } else {
+    log.textContent = "已复盘 " + view.move_count + " 手，全部合法。";
+  }
+}
+
+slider.addEventListener("input", function () {
+  shown = Number(slider.value);
+  draw();
+});
+
+document.getElementById("doPass").addEventListener("click", function () {
+  const view = render({ state: start, events: kifu.slice(0, shown) });
+  kifu = kifu.slice(0, shown);
+  kifu.push({ kind: "pass", color: view.toMove });
+  shown = kifu.length;
+  draw();
+});
+
+document.getElementById("doReset").addEventListener("click", function () {
+  kifu = [];
+  shown = 0;
+  draw();
+});
+
+draw();
+</script>
+</body>
+</html>

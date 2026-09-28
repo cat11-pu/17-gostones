@@ -1,0 +1,161 @@
+{
+  "state": {
+    "size": 7,
+    "board": [
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    ],
+    "toMove": 1,
+    "captures": [
+      0,
+      0
+    ],
+    "koPoint": [
+      0,
+      0
+    ],
+    "passStreak": 0,
+    "finished": false,
+    "moves": [],
+    "placed": [
+      0,
+      0
+    ]
+  },
+  "events": [
+    {
+      "kind": "play",
+      "color": 1,
+      "point": "F2"
+    },
+    {
+      "kind": "play",
+      "color": 2,
+      "point": "G2"
+    },
+    {
+      "kind": "play",
+      "color": 1,
+      "point": "F4"
+    },
+    {
+      "kind": "play",
+      "color": 2,
+      "point": "G4"
+    },
+    {
+      "kind": "play",
+      "color": 1,
+      "point": "E3"
+    },
+    {
+      "kind": "play",
+      "color": 2,
+      "point": "F3"
+    },
+    {
+      "kind": "play",
+      "color": 1,
+      "point": "B1"
+    },
+    {
+      "kind": "play",
+      "color": 2,
+      "point": "A1"
+    },
+    {
+      "kind": "play",
+      "color": 1,
+      "point": "A7"
+    },
+    {
+      "kind": "play",
+      "color": 2,
+      "point": "A6"
+    },
+    {
+      "kind": "play",
+      "color": 1,
+      "point": "A2"
+    },
+    {
+      "kind": "play",
+      "color": 2,
+      "point": "B7"
+    },
+    {
+      "kind": "play",
+      "color": 1,
+      "point": "G3"
+    },
+    {
+      "kind": "pass",
+      "color": 2
+    },
+    {
+      "kind": "pass",
+      "color": 1
+    }
+  ]
+}
